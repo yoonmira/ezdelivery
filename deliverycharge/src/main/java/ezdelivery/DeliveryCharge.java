@@ -18,6 +18,13 @@ public class DeliveryCharge {
 
     @PostPersist
     public void onPostPersist(){
+        
+        
+        try{
+            Thread.currentThread().sleep((long) (400 + Math.random() * 220));
+        } catch (InterruptedException e){
+            e.printStackTrace();
+        }
         ChargeProvided chargeProvided = new ChargeProvided();
         BeanUtils.copyProperties(this, chargeProvided);
         chargeProvided.setStatus ("배달료지급");
