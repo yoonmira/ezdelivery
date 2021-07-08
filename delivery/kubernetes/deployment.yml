@@ -35,3 +35,19 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+   
+feign:
+  client:
+    url:
+      DeliveryCharge: http://deliveryCharge:8080
+  hystrix:
+    enabled: true
+hystrix:
+  command:
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 610           
+ 
+            
+            
+            
+            
