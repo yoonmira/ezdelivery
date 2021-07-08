@@ -62,3 +62,16 @@ spring:
         event-out:
           destination: ezdelivery
           contentType: application/json
+feign:
+  client:
+    url:
+      DeliveryCharge: http://deliveryCharge:8080
+  hystrix:
+    enabled: true
+
+hystrix:
+  command:
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 610           
+
+ 
