@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ezdelivery-config
+  namespace: ezdelivery
+data:
+  api.url.payment: http://paymemt:8080
+  alarm.prefix: Hello
+
+
+// kubectl apply -f cofingmap.yml
+
+
+
+
+  // ConfigMaps는 컨테이너 이미지로부터 설정 정보를 분리할 수 있게 해준다.
+// 환경변수나 설정값 들을 환경변수로 관리해 Pod가 생성될 때 이 값을 주입
+//파일로 만든 케이스 
