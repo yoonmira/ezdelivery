@@ -200,7 +200,7 @@ http GET localhost:8080/mypges
 ```
 
 ### 동기식 호출(Sync) 
-#### 동기식 호출(Sync)
+
 - 분석단계에서의 조건 중 하나로 delivery → deliverycharge 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
 
 [DeliveryChargeSerive.java]
@@ -460,7 +460,6 @@ server:
 ```
 
 - Gateway 서비스 기동 후 각 서비스로 접근이 가능한지 확인
-- Gateway Port 8088을 통해 8083 cellphone 서비스에 접근해서 재고생성 및 8081 order 서비스 접근하여 주문 및 8085 viewpage에서 주문상태 확인
 
 
 ### CI/CD
@@ -648,50 +647,57 @@ kubectl autoscale deployment order --cpu-percent=20 --min=1 --max=3
 
 
 ### Zero-downtime deploy (Readiness Probe)
-1. 먼저 Readiness를 주석처리하여 사전 테스트 준비
+1. 먼저 Readiness를 주석처리 후 제대로 적용되었는지 명령어로 확인
 
-[order > kubernetes > deployment.yml]
-![readi2-1](https://user-images.githubusercontent.com/61194075/124768821-f20b6c00-df73-11eb-823a-d5c1ff9a419d.PNG)
+![무정지배포1](https://user-images.githubusercontent.com/84304041/124996789-85cc5d80-e084-11eb-8c51-59092ca1bd89.PNG)
 
-2. 해당 yml 파일로 apply 진행한 뒤 적용여부 확인(Readiness 미존재)
-```
-# order > kubernetes 이동
-kubectl apply -f deployment.yml
+2 siege로 접속하여 부하를 넣고, 신규버전으로 다시 update 진행 시 서비스 중단 확인
 
-# 적용여부 확인
-kubectl get deploy order -o yaml
-```
-![readi1](https://user-images.githubusercontent.com/61194075/124769095-2a12af00-df74-11eb-881c-74e8956badc9.PNG)
 
-3. siege로 접속하여 부하를 넣고, 신규버전으로 다시 update 진행 시 서비스 중단 확인
-``` 
-kubectl set image deploy order order=231047593658.dkr.ecr.ap-northeast-2.amazonaws.com/final-order:v2
-```
-![readi3-1](https://user-images.githubusercontent.com/61194075/124769619-942b5400-df74-11eb-826a-88bd24509617.PNG)
+![무정지배포2](https://user-images.githubusercontent.com/84304041/124997098-0a1ee080-e085-11eb-8450-07c4fc4dea14.PNG)
 
-4. update가 진행되고 다시 서비스가 정상이 되면서 정상처리 확인
+![무정지배포4](https://user-images.githubusercontent.com/84304041/124997199-2ae73600-e085-11eb-824f-3330d2595ca3.PNG)
 
-![readi4-1](https://user-images.githubusercontent.com/61194075/124769720-aa391480-df74-11eb-9f50-0bb532b1fb5c.PNG)
-![readi5](https://user-images.githubusercontent.com/61194075/124769754-b1f8b900-df74-11eb-9c10-dba1595ed037.PNG)
+![무정지배포4 5](https://user-images.githubusercontent.com/84304041/124997058-f8d5d400-e084-11eb-8c89-22eb14d5c8bd.PNG)
 
-5. 다시 deployment.yml 파일에서 Readiness 주석처리한 부분 제외하여 apply 처리함
-```
-# order > kubernetes 이동하여 Readiness 부분 주석 제거한 뒤 apply
-kubectl apply -f deployment.yml
 
-# 적용여부 확인
-kubectl get deploy order -o yaml
-```
+3. 다시 deployment.yml 파일에서 Readiness 주석처리한 부분 제외하여 apply 처리함
+![무정지배포5](https://user-images.githubusercontent.com/84304041/124997257-42beba00-e085-11eb-9ff4-bd01535e6cb6.PNG)
 
-![readi6-1](https://user-images.githubusercontent.com/61194075/124770238-25022f80-df75-11eb-9174-7304321c1fe1.PNG)
 
-6. 다시 siege로 들어와서 부하발생 한 뒤 신규버전으로 update 진행 시 서비스 무중단으로 업무처리 됨을 확인
-``` 
-kubectl set image deploy order order=231047593658.dkr.ecr.ap-northeast-2.amazonaws.com/final-order:v1
-```
+4. 다시 siege로 들어와서 부하발생 한 뒤 신규버전으로 update 진행 시 서비스 무중단으로 업무처리 됨을 확인
+![무정지배포6](https://user-images.githubusercontent.com/84304041/124997302-52d69980-e085-11eb-8f2c-eff9ba2b36e0.PNG)
+![무정지배포8](https://user-images.githubusercontent.com/84304041/124997327-5cf89800-e085-11eb-957a-e1f6fd0c1877.PNG)
+![무정지배포9](https://user-images.githubusercontent.com/84304041/124997336-61bd4c00-e085-11eb-8dc4-24cbc43ca253.PNG)
 
-![readi8-1](https://user-images.githubusercontent.com/61194075/124770794-980ba600-df75-11eb-9482-c10c4c7eb6a5.PNG)
-![readi7-1](https://user-images.githubusercontent.com/61194075/124770801-993cd300-df75-11eb-8983-d4171d34b64b.PNG)
+### Self-healing (Liveness Probe)
+1. yml 파일에 Liveness 적용
+![셀프힐링1](https://user-images.githubusercontent.com/84304041/124997473-a1843380-e085-11eb-8452-118705814348.PNG)
+
+
+2. Pod가 에러로 종료가 될 때까지 siege로 계속해서 부하 발생
+- 300명이 100초간 부하
+
+![셀프힐링3](https://user-images.githubusercontent.com/84304041/124997583-dabca380-e085-11eb-9608-ae66f446e85e.PNG)
+
+![셀프힐링4](https://user-images.githubusercontent.com/84304041/124997626-f32cbe00-e085-11eb-8208-7a1c575fdac2.PNG)
+
+5. kubectl get po -w로 모니터링하면서 delivery pod가  RESTART로 재기동이 발생하는 모습 확인
+6. 
+![셀프힐링5](https://user-images.githubusercontent.com/84304041/124997713-16576d80-e086-11eb-8d50-24df577b8794.PNG)
+
+
+
+### Polyglot
+
+cook 서비스는 hsqldb를 사용하여 정상작동 확인했다
+![폴릭드랏쿡](https://user-images.githubusercontent.com/84304041/124999061-66cfca80-e088-11eb-97b3-319b72dde9a2.PNG)
+
+요리서비스가 정상적으로 post되고 get되었다. 
+
+![폴리그랏쿡2](https://user-images.githubusercontent.com/84304041/124999089-6fc09c00-e088-11eb-9215-596c8b789fa7.PNG)
+![폴리그랏쿡3](https://user-images.githubusercontent.com/84304041/124999098-72bb8c80-e088-11eb-9042-10e16df7a840.PNG)
+
 
 ### Config Map/ Persistence Volume
 - Database 연결 및 Secret 설정은 재고인 cellphone 서비스에 설정함
@@ -773,35 +779,3 @@ kubectl get secrets
 
 6. 이후 서비스에서 해당 RDS를 통해 접근하도록 진행
 
-### Self-healing (Liveness Probe)
-1. yml 파일에 Liveness 적용
-
-![live0-1](https://user-images.githubusercontent.com/61194075/124771919-837bdd80-df76-11eb-8859-e8375274031f.png)
-
-2. yml파일 apply적용 및 deploy에 적용확인
-```
-# order > kubernetes 이동하여 Liveness yml파일에 있는 것 확인한 뒤 apply 진행
-kubectl apply -f deployment.yml
-
-# 적용여부 확인
-kubectl get deploy order -o yaml
-```
-
-![live0-0](https://user-images.githubusercontent.com/61194075/124771947-88409180-df76-11eb-8e9a-a0619c7a223a.png)
-
-3. Pod가 에러로 종료가 될 때까지 siege로 계속해서 부하 발생
-```
-kubectl exec -it siege -- /bin/bash
-siege -c200 -t120S -r5 -v --content-type "application/json" 'http://order:8080/orders POST {"cellphoneId":"1"}'
-```
-
-![live1](https://user-images.githubusercontent.com/61194075/124772213-c938a600-df76-11eb-86f7-d4e79f178cdc.PNG)
-
-4. 다시 Pod가 재기동이 발생을 하고, 정상화 확인
-
-![live2](https://user-images.githubusercontent.com/61194075/124772320-e3728400-df76-11eb-8b6a-54859d6a8fc5.PNG)
-
-5. kubectl get po -w로 모니터링하면서 RESTART로 재기동이 발생하는 모습 확인
-
-![live3-1](https://user-images.githubusercontent.com/61194075/124772499-0d2bab00-df77-11eb-8ace-273c840770f4.PNG)
-![image](https://user-images.githubusercontent.com/61194075/124392415-66ee6400-dd30-11eb-9a7e-fc0613a9534a.png)
