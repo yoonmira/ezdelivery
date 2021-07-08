@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: mypage
-          image: 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/user08-ezdelivery-mypage:latest
+          image: 879772956301.dkr.ecr.ap-northeast-1.amazonaws.com/ezdelivery-mypage:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
