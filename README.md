@@ -13,6 +13,7 @@
 1. 주문이 취소되면 배달이 취소된다
 1. 고객이 주문상태를 마이페이지에서 중간중간 조회한다
 1. 주문상태가 바뀔 때 마다 카톡으로 알림을 보낸다
+
     
 ### 비기능적 요구사항
     1. 트랜잭션
@@ -24,37 +25,35 @@
        - 신청, 결제 상태에 대해 고객은 한번에 확인할 수 있어야 한다.(CQRS)
        - 신청/취소/결제/결제취소 할 때마다 메세지로 알림을 줄 수 있어야 한다.(Event Driven)
        
-### Event Storming 후 1차 완성모델
+### Event Storming 후 완성모델
+![모델링1](https://user-images.githubusercontent.com/84304041/124983596-1f8b0f00-e073-11eb-9d02-de8be3ae03e4.PNG)
 
 
 ### 기능적/비기능적 요구사항을 커버하는지 검증
-![image](https://user-images.githubusercontent.com/61194075/124386875-5f6e9100-dd17-11eb-8ec7-30b58187c9b5.png)
+![모델링1_LI](https://user-images.githubusercontent.com/84304041/124983991-a5a75580-e073-11eb-84d6-8d1ec4eea759.jpg)
 
-    1. 대리점에서는 판매단말을 등록/삭제 할 수 있다. → OK(노란색)
-    2. 고객은 판매단말을 신청/취소 할 수 있다. → OK(빨간색)
-    3. 고객은 단말신청 시 단말금액을 결제한다. → OK(파란색)
-    4. 고객이 단말 신청취소 시 결제한 단말금액은 환불되어야 한다. → OK(초록색)
-    5. 단말 신청/취소/결제 시 고객에게 알림을 전송한다. → OK(주황색)
-    6. 판매단말의 수량이 부족한 경우 단말을 판매할 수 없다.  → ??? → 단말정보를 단말 신청시점에 체크할 수 있도록 Req/Res 추가
-
-### 모델 수정 및 완성
-![image](https://user-images.githubusercontent.com/61194075/124387065-13701c00-dd18-11eb-8ced-f510774daba9.png)
-    
     #### 기능적 요구사항
-    6. 판매단말의 수량이 부족한 경우 단말을 판매할 수 없다. → Req/Res로 주문 전 단말정보 조회 추가
+    1. 고객이 메뉴를 주문혹은 취소한다→ OK
+    2. 고객이 결제혹은 결제취소된다 → OK
+    3. 주문이 되면 알림을보낸다 → OK
+    4. 가게주인이 주문을 확인하고 요리를 한다 → OK
+    5. 요리를 하면 배달원이 배달준비를하고 배달료를받으면 배달을 출발한다. → OK
+  
+
     
     #### 비기능적 요구사항 → 모두 충족
     1. 트랜잭션
        - 결제가 되지 않은 신청건은 성립되지 않음(Sync 호출)
+       - 배달료가 지불되어 야만 라이더는 배달을 출발함
     2. 장애격리
-       - 메세지 전송 기능이 수행되지 않더라도 단말신청/결제는 365일 24시간 받을 수 있어야 한다.(Async(event-driven), Eventual Consistency)
+       - 메세지 전송 기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다.(Async(event-driven), Eventual Consistency)
        - 신청시스템이 과중되면 사용자를 잠시동안 받지 않고 잠시 후에 하도록 유도한다.(Circuit Breaker, Fallback)
     3. 성능
-       - 신청, 결제 상태에 대해 고객은 한번에 확인할 수 있어야 한다.(CQRS)
-       - 신청/취소/결제/결제취소 할 때마다 메세지로 알림을 줄 수 있어야 한다.(Event Driven)
+       - 주문, 결제 상태에 대해 고객은 한번에 확인할 수 있어야 한다.(CQRS)
+       - 주문/취소/결제/결제취소 할 때마다 메세지로 알림을 줄 수 있어야 한다.(Event Driven)
        
 ### 헥사고날 아키텍처 다이어그램 도출
-![분산스트림](https://user-images.githubusercontent.com/61194075/124387260-c771a700-dd18-11eb-89e9-328403f69b18.png)
+
 
     1. 호출관계에서 Request/Response, Publish/Subscribe를 구분하여 처리함
     2. 하나의 서브도메인이 장애가 발생하더라도 다른 서브도메인이 큰 영향을 받지 않도록 설계함
@@ -63,30 +62,40 @@
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 Bounded Context별로 대변되는 마이크로 서비스들을 Springboot로 구현
 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다.
 
-    [Order] - Port : 8081
+    [store] - Port : 8081
+    cd store
+    mvn spring-boot:run
+    
+    [order] - Port : 8082
     cd order
     mvn spring-boot:run
     
-    [Payment] - Port : 8082
+    [payment] - Port : 8083
     cd payment
     mvn spring-boot:run
     
-    [CellPhone] - Port : 8083
-    cd cellphone
+    [alarm] - Port : 8084
+    cd alarm
     mvn spring-boot:run
     
-    [Message] - Port : 8084
-    cd message
-    mvn spring-boot:run
-    
-    [ViewPage] - Port : 8085
-    cd viewpage
+    [mypage] - Port : 8085
+    cd mypage
     mvn spring-boot:run
        
-    [Gateway] - Port : 8088
-    cd gateway
+    [delivery] - Port : 8086
+    cd delivery
     mvn spring-boot:run
     
+    [cook] - Port : 8087
+    cd cook
+    mvn spring-boot:run
+       
+    [deliverycharge] - Port : 8088
+    cd deliverycharge
+    mvn spring-boot:run
+    
+  
+      
 ![수정1_1](https://user-images.githubusercontent.com/61194075/124760497-c6848380-df6b-11eb-99a9-3c03d1d911e4.png)
 
 ### DDD의 적용
