@@ -461,6 +461,9 @@ server:
 
 - Gateway 서비스 기동 후 각 서비스로 접근이 가능한지 확인
 
+![게이드웨이](https://user-images.githubusercontent.com/84304041/124999715-bb277a00-e089-11eb-8231-286bf4655235.PNG)
+
+
 
 ### CI/CD
 - 각 서비스의 경로에 buildspec.yml 파일을 구성했고, CI/CD는 AWS Codebuild를 사용하여 구현함
