@@ -1,0 +1,41 @@
+package ezdelivery;
+
+import ezdelivery.config.kafka.KafkaProcessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.annotation.StreamListener;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Service;
+
+@Service
+public class PolicyHandler{
+    @Autowired DeliveryRepository deliveryRepository;
+    
+    @StreamListener(KafkaProcessor.INPUT)
+    public void wheneverFoodCooked_StartDelivery(@Payload FoodCooked foodCooked){
+
+        if(!foodCooked.validate()) return;
+
+        System.out.println("\n\n##### listener StartDelivery : " + foodCooked.toJson() + "\n\n");
+        long orderId = foodCooked.getId()== null ? 0 : foodCooked.getId();
+   
+
+        // Sample Logic //
+        Delivery delivery = new Delivery();
+       //Delivery delivery = deliveries.get(0);
+        delivery.setStatus("배달시작");
+        deliveryRepository.save(delivery);
+            
+    }
+
+
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whatever(@Payload String eventString){}
+
+
+}
+
+
+
