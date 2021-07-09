@@ -58,6 +58,9 @@
     1. 호출관계에서 Request/Response, Publish/Subscribe를 구분하여 처리함
     2. 하나의 서브도메인이 장애가 발생하더라도 다른 서브도메인이 큰 영향을 받지 않도록 설계함
     
+    ![헥사고날](https://user-images.githubusercontent.com/84304041/125010403-65f76280-e0a1-11eb-982f-bca83e191aa4.PNG)
+
+    
 ## 구현
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 Bounded Context별로 대변되는 마이크로 서비스들을 Springboot로 구현
 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다.
