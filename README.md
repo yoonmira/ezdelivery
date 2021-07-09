@@ -19,11 +19,11 @@
     1. 트랜잭션
        - 결제가 되지 않은 신청건은 성립되지 않아야 한다.(Sync 호출)
     2. 장애격리
-       - 메세지 전송 기능이 수행되지 않더라도 단말신청/결제는 365일 24시간 받을 수 있어야 한다.(Async(event-driven), Eventual Consistency)
-       - 신청시스템이 과중되면 사용자를 잠시동안 받지 않고 잠시 후에 하도록 유도한다.(Circuit Breaker, Fallback)
+       - 결제기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다.(Async(event-driven), Eventual Consistency)
+       - 결제시스템, 배달료지급 시스템이 이 과중되면 사용자를 잠시동안 받지 않고 잠시 후에 하도록 유도한다.(Circuit Breaker, Fallback)
     3. 성능
-       - 신청, 결제 상태에 대해 고객은 한번에 확인할 수 있어야 한다.(CQRS)
-       - 신청/취소/결제/결제취소 할 때마다 메세지로 알림을 줄 수 있어야 한다.(Event Driven)
+       - 주문, 결제 상태에 대해 고객은 한번에 확인할 수 있어야 한다.(CQRS)
+       - 주문/취소/결제/결제취소 할 때마다 메세지로 알림을 줄 수 있어야 한다.(Event Driven)
        
 ### Event Storming 후 완성모델
 ![모델링1](https://user-images.githubusercontent.com/84304041/124983596-1f8b0f00-e073-11eb-9d02-de8be3ae03e4.PNG)
